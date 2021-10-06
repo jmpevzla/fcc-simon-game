@@ -1,4 +1,7 @@
 <script>
+  import Button from './Button.svelte';
+  import Control from './Control.svelte';
+
   const soundsSimon = [];
   const colorsActive = [
     'red',
@@ -162,27 +165,81 @@
   }
 </script>
 
-<section class="game">
-  <h1>Simon Game!</h1>
-
-  <button disabled={mode === modes.game} 
-    on:click={() => start()}>Start</button>
-  <button disabled={mode === modes.init} 
-    on:click={() => reset()}>Reset</button>
-  <label>
-    <input type="checkbox" on:change={changeStrict} checked={isStrict}> Strict Mode
-  </label>
-  {#if mode === modes.game}
-    <p>Steps: {genArr.length}</p>
-  {/if}
-  {#if lastPress !== ''}
-    <p>Last Press: {lastPress}</p>
-  {/if}
-
-  <div class="buttons">
-    <button style={btn1Style} on:click={() => simon(1)}>Button 1</button>
-    <button style={btn2Style} on:click={() => simon(2)}>Button 2</button>
-    <button style={btn3Style} on:click={() => simon(3)}>Button 3</button>
-    <button style={btn4Style} on:click={() => simon(4)}>Button 4</button>
+<div class="simon">
+  <div class="cont-btn cont-green">
+    <Button color="green" />
   </div>
-</section>
+
+  <div class="cont-btn cont-red">
+    <Button color="red" />
+  </div>
+
+  <div class="cont-btn cont-yellow">
+    <Button color="yellow" />
+  </div>
+
+  <div class="cont-btn cont-blue">
+    <Button color="blue" />
+  </div>
+
+  <div class="cont-center">
+    <Control />
+  </div>
+</div>
+
+<style>
+  .simon {
+    font-family: 'Gemunu Libre', sans-serif;
+    border-radius: 50%;
+    outline: 25px solid rgb(46, 46, 46); 
+    width: 550px;
+    height: 550px;
+    overflow: hidden;
+    position: relative;
+    background-color: #000;
+    box-shadow: 0px 0px 75px #000;
+  }
+
+  .cont-btn {
+    position: absolute;
+    width: 48%;
+    height: 48%;
+    overflow: inherit;
+  }
+
+  .cont-red {
+    left: 53%;
+  }
+  
+  .cont-yellow {
+    top: 53%;
+  }
+
+  .cont-blue {
+    top: 53%;
+    left: 53%;
+  }
+
+  .cont-center {
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    z-index: 1;
+    top: 15%;
+    left: 15%;
+    border-radius: 50%;
+    border: 15px solid rgb(46, 46, 46);  /*solid #bbb;*/
+    background-color: rgb(219, 219, 219);
+    padding: 10%;
+  }
+
+  @media screen and (max-width: 590px) {
+    .simon {
+      outline-width: 10px; 
+      width: calc(100vw - 20px);
+      height: 100vw;
+      min-width: 345px;
+      min-height: 345px;
+    }
+  }
+</style>
