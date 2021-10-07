@@ -9,22 +9,22 @@
   const buttons = {
     [kGreen]: {
       color: kGreen,
-      sound: new Audio('./sounds/simonSound1.mp3'),
+      sound: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound1.mp3'),
       activate: false
     },
     [kRed]: {
       color: kRed,
-      sound: new Audio('./sounds/simonSound2.mp3'),
+      sound: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound2.mp3'),
       activate: false
     },
     [kYellow]: {
       color: kYellow,
-      sound: new Audio('./sounds/simonSound3.mp3'),
+      sound: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound3.mp3'),
       activate: false
     },
     [kBlue]: {
       color: kBlue,
-      sound: new Audio('./sounds/simonSound4.mp3'),
+      sound: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound4.mp3'),
       activate: false
     },
   };
