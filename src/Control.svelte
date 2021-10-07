@@ -3,6 +3,10 @@
   import Start from './Start.svelte';
   import Counter from './Counter.svelte';
   import Strict from './Strict.svelte';
+
+  export let disabled = true;
+  export let counter = 0;
+  export let strictActive = false;
 </script>
 
 <section class="container">
@@ -11,13 +15,16 @@
   </header>
 
   <div class="board">
-    <Power />
-    <Start />
+    <Power on:power-change />
+    <Start disabled={disabled} on:start />
   </div>
 
   <div class="board">
-    <Counter />
-    <Strict />
+    <Counter disabled={disabled} 
+      count={counter} />
+    <Strict disabled={disabled} 
+      active={strictActive}
+      on:strict-active />
   </div>
 </section>
 

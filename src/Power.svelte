@@ -1,5 +1,9 @@
 <script>
+  import createDispatch from './createDispatch';
 
+  let on = false;
+  let dispatch = createDispatch();
+  $: dispatch('power-change', on);
 </script>
 
 <div class="power">
@@ -8,7 +12,7 @@
   </div>
 
   <label class="ctrl">
-    <input type="checkbox">
+    <input type="checkbox" bind:checked={on}>
     <span class="slider"></span>
   </label>
 </div>

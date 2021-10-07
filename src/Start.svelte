@@ -1,5 +1,12 @@
 <script>
+  import createDispatch from './createDispatch';
+  export let disabled = true;
 
+  const dispatch = createDispatch();
+
+  function onClick() {
+    dispatch('start');
+  }
 </script>
 
 <div class="start">
@@ -7,7 +14,9 @@
     <h2 class="subtitle">Start</h2>
   </div>
   <div class="cont-control">
-    <button class="btn-ctrl btn-start"></button>
+    <button class="btn-ctrl btn-start"
+      disabled={disabled}
+      on:click={onClick}></button>
   </div>
 </div>
 

@@ -1,12 +1,16 @@
 <script>
+  import createDispatch from "./createDispatch";
+  
+  export let disabled = true;
+  export let active = false; 
 
-  let active = false;
-
+  const dispatch = createDispatch();
   const baseLed = "led";
-  $: clazzLed = baseLed + (active ? ' led-active' : '');
+
+  $: clazzLed = baseLed + (active && !disabled ? ' led-active' : '');
 
   function onClick() {
-    active = !active;
+    dispatch('strict-active');
   }
 </script>
 
@@ -18,7 +22,8 @@
   <div class="cont-control">
     <div class={clazzLed}></div>
     <div class="cont-btn">
-      <button class="btn-ctrl btn-strict" 
+      <button class="btn-ctrl btn-strict"
+        disabled={disabled} 
         on:click={onClick}></button>
     </div>
   </div>

@@ -2,188 +2,221 @@
   import Button from './Button.svelte';
   import Control from './Control.svelte';
 
-  const soundsSimon = [];
-  const colorsActive = [
-    'red',
-    'green',
-    'blue',
-    'yellow'
-  ];
+  const kGreen = "green";
+  const kRed = "red";
+  const kYellow = "yellow";
+  const kBlue = "blue";
+  const buttons = {
+    [kGreen]: {
+      color: kGreen,
+      sound: new Audio('./sounds/simonSound1.mp3'),
+      activate: false
+    },
+    [kRed]: {
+      color: kRed,
+      sound: new Audio('./sounds/simonSound2.mp3'),
+      activate: false
+    },
+    [kYellow]: {
+      color: kYellow,
+      sound: new Audio('./sounds/simonSound3.mp3'),
+      activate: false
+    },
+    [kBlue]: {
+      color: kBlue,
+      sound: new Audio('./sounds/simonSound4.mp3'),
+      activate: false
+    },
+  };
+  const colors = [kGreen, kRed, kYellow, kBlue];
+  const list = [];
 
-  const modes = Object.freeze({
-    'init': 'init',
-    'secuence': 'secuence',
-    'game': 'game',
-    'end': 'end'
-  });
-  
-  let genArr = [];
-  let userIdx = 0;
-  let mode = modes.init; 
-  let isStrict = true;
-  let lastPress = '';
-  //let btnActive = -1;
-  let btn1Style = '';
-  let btn2Style = '';
-  let btn3Style = '';
-  let btn4Style = '';
-
-  for (let i = 1; i <= 4; i++) {
-    soundsSimon.push(
-      new Audio(`./sounds/simonSound${i}.mp3`)
-    );
-  }
-
-  function play(idx) {
-    const audio = soundsSimon[idx];
-    audio.currentTime = 0;  
-    audio.play();
-  }
+  let powerOn = false;
+  let counter = 0;
+  let buttonsDisabled = true;
+  let userIndex = 0;
+  let timeout = 0;
+  let isStrict = false;
 
   function reset() {
-    userIdx = 0;
-    genArr = [];
-    mode = modes.init;
+    counter = 0;
+    userIndex = 0;
+    list.length = 0;
   }
 
-  async function wait(time = 1000) {
-    return new Promise((res) => {
+  function clearAllInterval() {
+    clearTimeout(timeout);
+    timeout = -1;
+  }
+
+  function onPowerOff() {
+    reset();
+    isStrict = false;
+    clearAllInterval();  
+  }
+
+  $: if (!powerOn) {
+    onPowerOff();
+  }
+
+  function onPowerChange({ detail: on }) {
+    powerOn = on;
+  }
+
+  function activateButton(color) {
+    return new Promise( res => {
+      buttons[color].activate = true;
+
       setTimeout(() => {
+        buttons[color].activate = false;
         res();
-      }, time);
+      }, 750);
     });
   }
 
-  function secuence() {
-    genArr.forEach(async (value) => {
-      const prom = new Promise(async (res) => {
-        activateButton(value);
-        
-        setTimeout(() => {
-          activateButton(-1);
-        }, 2000);
+  async function secuence(newSecuence = true) {
+    if (newSecuence) {
+      const index = Math.floor(Math.random() * 4);
+      const key = colors[index];
+      list.push(key);
+    }
+    
+    for(let color of list) {
+      await activateButton(color);
+    }
+  }
 
-        //await wait();
+  async function executeSecuence(newSecuence = true) {
+    await secuence(newSecuence);  
+    buttonsDisabled = false;
+  }
+
+  async function showTimeout() {
+    if (!powerOn) {
+      return onPowerOff();
+    }
+
+    const auxCounter = counter;
+    buttonsDisabled = true;
+    counter = -1;
+    const prom = new Promise(res => {
+      setTimeout(async () => {
+        counter = auxCounter;
+        userIndex = 0;
+        await executeSecuence(false);
         res();
+      }, 1000);      
+    });
+    await prom;
+    timeout = setTimeout(showTimeout, 7500);
+  }
+
+  function actTimeout() {
+    clearAllInterval();
+    timeout = setTimeout(showTimeout, 7500);
+  }
+
+  async function nextColor() {
+    buttonsDisabled = true;
+    userIndex = 0;
+    if (counter > 1) {
+      const prom = new Promise(res => {
+        setTimeout(async () => {
+          await executeSecuence();
+          res();
+        }, 750);
       });
       await prom;
-    });
-  }
-
-  function activateButton (idx) {
-    // if (btnActive === num - 1) {
-    //   return `background-color: ${colorsActive[btnActive]}`;
-    // } else {
-    //   return "";
-    // }
-
-    
-    btn1Style = "";
-    btn2Style = "";
-    btn3Style = "";
-    btn4Style = "";
-    
-    if (idx === -1) return;
-    
-    play(idx);
-    const base = `background-color: ${colorsActive[idx]}`;
-
-    switch(idx) {
-      case 0:
-        btn1Style = base;
-        break;
-      case 1:
-        btn2Style = base;
-        break;
-      case 2:
-        btn3Style = base;
-        break;
-      case 3:
-        btn4Style = base;
-        break;
+    } else {
+      await executeSecuence();
     }
-    //console.log(btn1Style);
+
+    actTimeout();
   }
 
-  function generate() {
-    const num = Math.floor(Math.random() * 4); 
-    genArr = [...genArr, num];
-    console.log(genArr);
-    secuence();
+  function onStart() {
+    reset();
+    counter++;
+    nextColor();
   }
-  
-  async function simon(num) {
-    if (mode === modes.game) {
-      const idx = num - 1;
-      activateButton(idx);
-      //play(idx);
-      await wait();
-      console.log(idx);
 
-      if (idx === genArr[userIdx]) {
-        userIdx++;
-        lastPress = num;
-
-        if (genArr.length === 3 && userIdx === 3) {
-          lastPress = 'Congratulations, You Win!';
-          reset();
-          return;
-        }
-
-        if (userIdx === genArr.length) {
-          userIdx = 0;
-          lastPress = '';
-          generate();
+  function onButtonClick({ detail: color }) {
+    const itemList = list[userIndex];
+    if (itemList === color) {
+      if(userIndex === list.length - 1) {
+        counter++;
+        if (counter < 21) {
+          nextColor();
+        } else {
+          buttonsDisabled = true;
         }
       } else {
-        if (isStrict) {
-          lastPress = 'Wrong Button!, You Lost!';
-          reset();
-          //mode = modes.game;
-          //generate();
-        } else {
-          lastPress = 'Wrong Button, Try Again!';
-          userIdx = 0;
-          //secuence();
-        }
+        userIndex++;
+        actTimeout();
+      }
+    } else {
+      if (!isStrict) {
+        showTimeout();
+      } else {
+        buttonsDisabled = true;
+        counter = -1;
+        setTimeout(onStart, 2000);
       }
     }
   }
 
-  function start() {
-    if (mode === modes.init) {
-      mode = modes.game;
-      lastPress = '';
-      generate();
-    }
+  function onButtonPreClick() {
+    clearAllInterval();
   }
 
-  function changeStrict() {
-    if (mode === modes.init) {
-      isStrict = !isStrict;
-    }
+  function onStrictActive() {
+    isStrict = !isStrict;
   }
 </script>
 
 <div class="simon">
   <div class="cont-btn cont-green">
-    <Button color="green" />
+    <Button { ...buttons.green }
+      disabled={buttonsDisabled}
+      on:click={onButtonClick} 
+      on:pre-click={onButtonPreClick}
+    />
   </div>
 
   <div class="cont-btn cont-red">
-    <Button color="red" />
+    <Button { ...buttons.red }
+      disabled={buttonsDisabled} 
+      on:click={onButtonClick}
+      on:pre-click={onButtonPreClick}
+    />
   </div>
 
   <div class="cont-btn cont-yellow">
-    <Button color="yellow" />
+    <Button { ...buttons.yellow }
+      disabled={buttonsDisabled}
+      on:click={onButtonClick} 
+      on:pre-click={onButtonPreClick}
+    />
   </div>
 
   <div class="cont-btn cont-blue">
-    <Button color="blue" />
+    <Button { ...buttons.blue }
+      disabled={buttonsDisabled} 
+      on:click={onButtonClick}
+      on:pre-click={onButtonPreClick}
+    />
   </div>
 
   <div class="cont-center">
-    <Control />
+    <Control 
+      disabled={!powerOn}
+      counter={counter}
+      strictActive={isStrict}
+
+      on:power-change={onPowerChange}
+      on:start={onStart}
+      on:strict-active={onStrictActive}
+    />
   </div>
 </div>
 
